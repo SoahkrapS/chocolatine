@@ -24,17 +24,13 @@ jobs:
         run: check.sh $(pwd) $(pwd)
       - name: Coding style errors display
         run: |
-          CSR_CONTENT=$(check.sh $(pwd) $(pwd) 2>&1)
-          if [[ -n $CSR_CONTENT ]]; then
-            while read -r ERRORS; do
-              array=($ERRORS)
-              echo "::error file=${array[1]#./},title=${array[3]#./}::${array[4]#./}"
-            done <<< "$CSR_CONTENT"
-            echo "Coding style errors detected"
-            exit 1
-          else
-            echo "No coding style errors"
-          fi
+          while read line; do
+            error_title=$(echo "$line" | cut -d ":" -f 3)
+            error_file=$(echo "$line" | cut -d ":" -f 1)
+            line_number=$(echo "$line" | cut -d ":" -f 2)
+            id=$(echo "$line" | cut -d ":" -f 4)
+            echo "::error error_title=${error_title} coding style error,file=$error_file,line=$line_number::${id}"
+          done < coding-style-reports.log
 
   check_program_compilation:
     runs-on: ubuntu-latest
